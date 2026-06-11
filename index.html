@@ -276,7 +276,7 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
       <thead><tr><th>Outil</th><th>Backend</th><th>Type</th></tr></thead>
       <tbody>
         <tr><td>Restauration</td><td>Canvas (median + auto-contrast + sharpen)</td><td>Local (hors-ligne)</td></tr>
-        <tr><td>Coloriage</td><td>Canvas (auto-levels + warm tint + saturation)</td><td>Local (hors-ligne)</td></tr>
+        <tr><td>Coloriage</td><td>HuggingFace API / Canvas fallback</td><td>IA (en ligne)</td></tr>
         <tr><td>Upscaling (4x)</td><td>Canvas bicubic</td><td>Local (hors-ligne)</td></tr>
         <tr><td>Défloutage</td><td>Canvas sharpen kernel</td><td>Local (hors-ligne)</td></tr>
         <tr><td>Amélioration</td><td>Canvas filters</td><td>Local (hors-ligne)</td></tr>
@@ -498,46 +498,83 @@ function processWithCurrentTool() {
     alert('Erreur : ' + (err.message || err));
   }
 
-  // ---- AI (DeepAI + Canvas fallback) ----
-  var DEEPAI_KEY = 'ea0c9e46-7da6-4cbf-b4e0-ae672a26de50';
+  // ---- AI (HuggingFace + Canvas fallback) ----
+  var HF_TOKEN = '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';
   function processAI(mode, img) {
-    if (mode === 'colorize') return processDeepColorize(img);
+    if (mode === 'colorize') return processHFColorize(img);
     if (mode === 'restore') return processRestore(img);
   }
 
-  // ---- Colorize (DeepAI API + Canvas fallback) ----
-  function processDeepColorize(img) {
+  // ---- Colorize (HuggingFace Inference API + Canvas fallback) ----
+  function processHFColorize(img) {
     var c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
+    c.width = Math.min(img.width, 768);
+    c.height = Math.min(img.height, 768);
     var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
     c.toBlob(function(blob) {
-      var fd = new FormData();
-      fd.append('image', blob, 'image.jpg');
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://api.deepai.org/api/colorizer', true);
-      xhr.setRequestHeader('api-key', DEEPAI_KEY);
-      xhr.onload = function() {
-        try {
-          var resp = JSON.parse(xhr.responseText);
-          if (resp && resp.output_url) {
-            var resultImg = new Image();
-            resultImg.crossOrigin = 'anonymous';
-            resultImg.onload = function() {
-              var fc = document.createElement('canvas');
-              fc.width = img.width; fc.height = img.height;
-              var fctx = fc.getContext('2d');
-              fctx.drawImage(resultImg, 0, 0, img.width, img.height);
-              done(fc.toDataURL('image/png'));
-            };
-            resultImg.onerror = function() { canvasColorize(img); };
-            resultImg.src = resp.output_url;
-          } else { canvasColorize(img); }
-        } catch(e) { canvasColorize(img); }
+      // Try JSON POST first (instruct-pix2pix format)
+      var reader = new FileReader();
+      reader.onload = function() {
+        var b64 = reader.result.split(',')[1];
+        tryJSON(b64, blob, img);
       };
-      xhr.onerror = function() { canvasColorize(img); };
-      xhr.send(fd);
+      reader.readAsDataURL(blob);
     }, 'image/jpeg', 0.85);
+  }
+
+  function tryJSON(b64, blob, img) {
+    var body = JSON.stringify({
+      inputs: "Colorize this black and white photograph, make it realistic natural colors, vibrant detailed high quality",
+      image: "data:image/jpeg;base64," + b64
+    });
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://api-inference.huggingface.co/models/timbrooks/instruct-pix2pix', true);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + HF_TOKEN);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.responseType = 'blob';
+    xhr.onload = function() {
+      var ct = xhr.getResponseHeader('content-type') || '';
+      if (xhr.status === 200 && ct.includes('image')) {
+        processResult(xhr.response, img);
+      } else {
+        // Fallback: send raw bytes
+        tryRawBytes(blob, img);
+      }
+    };
+    xhr.onerror = function() { tryRawBytes(blob, img); };
+    xhr.send(body);
+  }
+
+  function tryRawBytes(blob, img) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://api-inference.huggingface.co/models/lllyasviel/sd-controlnet-canny', true);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + HF_TOKEN);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.setRequestHeader('X-Use-Cache', 'false');
+    xhr.responseType = 'blob';
+    xhr.onload = function() {
+      var ct = xhr.getResponseHeader('content-type') || '';
+      if (xhr.status === 200 && ct.includes('image')) {
+        processResult(xhr.response, img);
+      } else { canvasColorize(img); }
+    };
+    xhr.onerror = function() { canvasColorize(img); };
+    xhr.send(blob);
+  }
+
+  function processResult(blob, img) {
+    var url = URL.createObjectURL(blob);
+    var ri = new Image();
+    ri.onload = function() {
+      var fc = document.createElement('canvas');
+      fc.width = img.width; fc.height = img.height;
+      var fctx = fc.getContext('2d');
+      fctx.drawImage(ri, 0, 0, img.width, img.height);
+      done(fc.toDataURL('image/png'));
+    };
+    ri.onerror = function() { canvasColorize(img); };
+    ri.src = url;
   }
 
   // ---- Canvas colorize fallback (v2: multi-tone smart mapping) ----
