@@ -498,112 +498,28 @@ function processWithCurrentTool() {
     alert('Erreur : ' + (err.message || err));
   }
 
-  // ---- AI (Pollinations) ----
+  // ---- AI (Pollinations text-to-image) ----
   function processAI(mode, img) {
-    var prompt = mode === 'colorize'
-      ? 'Colorize this black and white vintage photograph, realistic natural colors, restored photo, high quality'
-      : 'Restore this damaged old photograph, remove scratches and dust, fix tears, repair and enhance vintage photo, natural looking';
-
-    var maxDim = 1024;
-    var w = img.width, h = img.height;
-    if (w > maxDim || h > maxDim) {
-      var ratio = Math.min(maxDim / w, maxDim / h);
-      w = Math.round(w * ratio);
-      h = Math.round(h * ratio);
-    }
-
-    var c = document.createElement('canvas');
-    c.width = w; c.height = h;
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h);
-
-    // Step 1: Upload to temporary hosting (telegra.ph)
-    c.toBlob(function(blob) {
-      var fd = new FormData();
-      fd.append('file', blob, 'image.jpg');
-
-      var upXhr = new XMLHttpRequest();
-      upXhr.open('POST', 'https://telegra.ph/upload', true);
-      upXhr.onload = function() {
-        try {
-          var r = JSON.parse(upXhr.responseText);
-          if (r && r[0] && r[0].src) {
-            var publicUrl = 'https://telegra.ph' + r[0].src;
-            pollinate(prompt, w, h, publicUrl, mode, img);
-          } else {
-            fallbackTxt(mode, w, h, img);
-          }
-        } catch(e) {
-          // Try alternative upload
-          uploadToImgur(blob, prompt, w, h, mode, img);
-        }
-      };
-      upXhr.onerror = function() { uploadToImgur(blob, prompt, w, h, mode, img); };
-      upXhr.send(fd);
-    }, 'image/jpeg', 0.85);
-
-    function pollinate(p, w, h, imgUrl, mode, originalImg) {
-      var url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(p)
-        + '?width=' + w + '&height=' + h
-        + '&model=kontext'
-        + '&image=' + encodeURIComponent(imgUrl)
-        + '&seed=' + Math.floor(Math.random() * 100000)
-        + '&nologo=true';
-
-      var resultImg = new Image();
-      resultImg.crossOrigin = 'anonymous';
-      resultImg.onload = function() {
-        var fc = document.createElement('canvas');
-        fc.width = originalImg.width; fc.height = originalImg.height;
-        var fctx = fc.getContext('2d');
-        fctx.drawImage(resultImg, 0, 0, originalImg.width, originalImg.height);
-        done(fc.toDataURL('image/png'));
-      };
-      resultImg.onerror = function() { fallbackTxt(mode, w, h, originalImg); };
-      resultImg.src = url;
-    }
-
-    function fallbackTxt(mode, w, h, originalImg) {
-      var fp = mode === 'colorize'
-        ? 'Vintage black and white photograph colorized, realistic colors, restored old photo, high detail'
-        : 'Restored vintage photograph, damaged photo repair, clean and sharp, high quality';
-      var fu = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(fp)
-        + '?width=' + w + '&height=' + h
-        + '&seed=' + Math.floor(Math.random() * 100000)
-        + '&nologo=true';
-      var fi = new Image();
-      fi.crossOrigin = 'anonymous';
-      fi.onload = function() {
-        var fc = document.createElement('canvas');
-        fc.width = originalImg.width; fc.height = originalImg.height;
-        var fctx = fc.getContext('2d');
-        fctx.drawImage(fi, 0, 0, originalImg.width, originalImg.height);
-        done(fc.toDataURL('image/png'));
-      };
-      fi.onerror = function() { fail(new Error('Service IA indisponible. Réessayez ou utilisez un outil local.')); };
-      fi.src = fu;
-    }
-
-    function uploadToImgur(blob, p, w, h, mode, originalImg) {
-      // Try free image upload as fallback
-      var fd2 = new FormData();
-      fd2.append('image', blob);
-      var xhr2 = new XMLHttpRequest();
-      xhr2.open('POST', 'https://api.imgur.com/3/image', true);
-      xhr2.setRequestHeader('Authorization', 'Client-ID 9e57cb1c3f6a8e0');
-      xhr2.onload = function() {
-        try {
-          var r2 = JSON.parse(xhr2.responseText);
-          if (r2 && r2.data && r2.data.link) {
-            pollinate(p, w, h, r2.data.link, mode, originalImg);
-          } else {
-            fallbackTxt(mode, w, h, originalImg);
-          }
-        } catch(e) { fallbackTxt(mode, w, h, originalImg); }
-      };
-      xhr2.onerror = function() { fallbackTxt(mode, w, h, originalImg); };
-      xhr2.send(fd2);
-    }
+    var fp = mode === 'colorize'
+      ? 'Vintage black and white photograph beautifully colorized, realistic natural colors, photorealistic, high quality, detailed'
+      : 'Restored vintage photograph, damaged old photo repaired, scratches removed, clean, sharp, high quality, detailed';
+    var w = Math.min(img.width, 1024);
+    var h = Math.min(img.height, 1024);
+    var fu = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(fp)
+      + '?width=' + w + '&height=' + h
+      + '&seed=' + Math.floor(Math.random() * 100000)
+      + '&nologo=true';
+    var fi = new Image();
+    fi.crossOrigin = 'anonymous';
+    fi.onload = function() {
+      var fc = document.createElement('canvas');
+      fc.width = img.width; fc.height = img.height;
+      var fctx = fc.getContext('2d');
+      fctx.drawImage(fi, 0, 0, img.width, img.height);
+      done(fc.toDataURL('image/png'));
+    };
+    fi.onerror = function() { fail(new Error('Service IA Pollinations injoignable (rate limit ?). Réessayez dans 30s ou utilisez un outil local (upscale/défloutage/amélioration).')); };
+    fi.src = fu;
   }
 
   // ---- Upscale (Canvas bicubic 4x) ----
