@@ -483,48 +483,111 @@ function fail(err) {
     if (mode === 'restore') return processRestore(img);
   }
 
-  // ---- Colorize (Canvas: smart color mapping v3) ----
+  // ---- Colorize (Canvas: smart color mapping v4 - local contrast aware) ----
   function canvasColorize(img) {
     var c = document.createElement('canvas');
     c.width = img.width; c.height = img.height;
     var ctx = c.getContext('2d');
     ctx.drawImage(img, 0, 0);
     var d = ctx.getImageData(0, 0, c.width, c.height);
-    var data = d.data, len = data.length;
+    var data = d.data, w = c.width, h = c.height, len = data.length;
 
     // Histogram stretch
     var min = 255, max = 0;
     for (var i = 0; i < len; i += 4) {
-      var lum = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      if (lum < min) min = lum;
-      if (lum > max) max = lum;
+      var gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
+      if (gray < min) min = gray;
+      if (gray > max) max = gray;
     }
     var range = max - min || 1;
 
-    // Smooth color mapping: shadows cool, midtones warm, highlights golden
-    function mapColor(n) {
-      var r, g, b;
-           if (n < 0.15) { var t = n / 0.15; r = 20+40*t;  g = 15+35*t;  b = 35+50*t;  }
-      else if (n < 0.35) { var t = (n-0.15)/0.20; r = 60+60*t;  g = 50+55*t;  b = 85-10*t;  }
-      else if (n < 0.55) { var t = (n-0.35)/0.20; r = 120+70*t; g = 105+65*t; b = 75+15*t;  }
-      else if (n < 0.75) { var t = (n-0.55)/0.20; r = 190+45*t; g = 170+50*t; b = 90+40*t;  }
-      else               { var t = (n-0.75)/0.25; r = 235+20*t; g = 220+35*t; b = 130+120*t; }
-      return { r: Math.min(255, Math.max(0, r)), g: Math.min(255, Math.max(0, g)), b: Math.min(255, Math.max(0, b)) };
+    // Precompute stretched luminance
+    var lum = new Float32Array(w * h);
+    for (var i = 0; i < len; i += 4) {
+      var g = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
+      lum[i>>2] = (g - min) / range;
     }
 
-    for (var i = 0; i < len; i += 4) {
-      var gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      var n = (gray - min) / range;
-      var col = mapColor(n);
-      // 85% color + 15% original
-      data[i] = col.r * 0.85 + gray * 0.15;
-      data[i+1] = col.g * 0.85 + gray * 0.15;
-      data[i+2] = col.b * 0.85 + gray * 0.15;
-      // Saturation boost 1.8x
-      var avg = (data[i] + data[i+1] + data[i+2]) / 3;
-      data[i] = Math.min(255, avg + (data[i] - avg) * 1.8);
-      data[i+1] = Math.min(255, avg + (data[i+1] - avg) * 1.8);
-      data[i+2] = Math.min(255, avg + (data[i+2] - avg) * 1.8);
+    // Compute local contrast per pixel (3x3 window std-dev approximation)
+    var detail = new Float32Array(w * h);
+    for (var y = 1; y < h-1; y++) {
+      for (var x = 1; x < w-1; x++) {
+        var idx = y * w + x;
+        var sum = 0, sum2 = 0;
+        for (var ky = -1; ky <= 1; ky++) {
+          for (var kx = -1; kx <= 1; kx++) {
+            var v = lum[(y+ky)*w + (x+kx)];
+            sum += v; sum2 += v*v;
+          }
+        }
+        var mean = sum / 9;
+        detail[idx] = Math.sqrt(sum2/9 - mean*mean);
+      }
+    }
+
+    // Colorize with local-contrast-aware palette blending
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var idx = y * w + x;
+        var i4 = idx << 2;
+        var n = lum[idx];
+        var det = detail[idx];
+
+        // Blend between cool (smooth=sky) and warm (detailed=foreground) palettes
+        var cool = det < 0.04 ? 0.6 : det < 0.08 ? 0.3 : 0.0;
+
+        // Shadows: deep blue (cool) / earthy brown (warm)
+        var sr, sg, sb;
+        if (n < 0.2) {
+          var t = n / 0.2;
+          sr = 15+25*t; sg = 10+20*t; sb = 30+45*t;
+        } else if (n < 0.4) {
+          var t = (n-0.2)/0.2;
+          sr = 40+60*t; sg = 30+55*t; sb = 75-15*t;
+        } else if (n < 0.6) {
+          var t = (n-0.4)/0.2;
+          sr = 100+80*t; sg = 85+75*t; sb = 60+15*t;
+        } else if (n < 0.8) {
+          var t = (n-0.6)/0.2;
+          sr = 180+55*t; sg = 160+60*t; sb = 75+45*t;
+        } else {
+          var t = (n-0.8)/0.2;
+          sr = 235+20*t; sg = 220+35*t; sb = 120+130*t;
+        }
+
+        // Warm palette (foreground): shifted towards green/earth
+        var wr, wg, wb;
+        if (n < 0.2) {
+          var t = n / 0.2;
+          wr = 25+35*t; wg = 20+30*t; wb = 20+35*t;
+        } else if (n < 0.4) {
+          var t = (n-0.2)/0.2;
+          wr = 60+75*t; wg = 50+80*t; wb = 55-5*t;
+        } else if (n < 0.6) {
+          var t = (n-0.4)/0.2;
+          wr = 135+85*t; wg = 130+90*t; wb = 50+30*t;
+        } else if (n < 0.8) {
+          var t = (n-0.6)/0.2;
+          wr = 220+35*t; wg = 220+35*t; wb = 80+50*t;
+        } else {
+          var t = (n-0.8)/0.2;
+          wr = 255+0*t; wg = 255+0*t; wb = 130+125*t;
+        }
+
+        var col_r = sr * cool + wr * (1-cool);
+        var col_g = sg * cool + wg * (1-cool);
+        var col_b = sb * cool + wb * (1-cool);
+
+        // Blend 90% color + 10% original, then boost saturation
+        var orig = lum[idx] * range + min;
+        var r = col_r * 0.9 + orig * 0.1;
+        var g = col_g * 0.9 + orig * 0.1;
+        var b = col_b * 0.9 + orig * 0.1;
+        var avg = (r+g+b)/3;
+        data[i4]   = Math.min(255, avg + (r-avg)*2.0);
+        data[i4+1] = Math.min(255, avg + (g-avg)*2.0);
+        data[i4+2] = Math.min(255, avg + (b-avg)*2.0);
+      }
     }
 
     ctx.putImageData(d, 0, 0);
