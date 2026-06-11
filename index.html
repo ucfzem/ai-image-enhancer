@@ -266,7 +266,7 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
     <ol style="color:var(--text-400);line-height:1.8;padding-left:20px">
       <li>Uploadez une image (PNG, JPG, WebP)</li>
       <li>Choisissez un outil (restauration, coloriage, upscaling, etc.)</li>
-      <li>L'image est traitée localement ou via l'API Pollinations AI</li>
+      <li>L'image est traitée localement (Canvas AI)</li>
       <li>Le résultat s'affiche avec un comparateur avant/après</li>
       <li>Téléchargez le résultat</li>
     </ol>
@@ -276,7 +276,7 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
       <thead><tr><th>Outil</th><th>Backend</th><th>Type</th></tr></thead>
       <tbody>
         <tr><td>Restauration</td><td>Canvas (median + auto-contrast + sharpen)</td><td>Local (hors-ligne)</td></tr>
-        <tr><td>Coloriage</td><td>HuggingFace API / Canvas fallback</td><td>IA (en ligne)</td></tr>
+        <tr><td>Coloriage</td><td>Canvas (colorisation intelligente)</td><td>Local (hors-ligne)</td></tr>
         <tr><td>Upscaling (4x)</td><td>Canvas bicubic</td><td>Local (hors-ligne)</td></tr>
         <tr><td>Défloutage</td><td>Canvas sharpen kernel</td><td>Local (hors-ligne)</td></tr>
         <tr><td>Amélioration</td><td>Canvas filters</td><td>Local (hors-ligne)</td></tr>
@@ -482,102 +482,29 @@ function processWithCurrentTool() {
     }
   };
   img.src = state.originalDataUrl;
+}
 
-  function done(resultUrl) {
-    state.processedDataUrl = resultUrl;
-    afterImg.src = resultUrl;
-    afterImg.style.display = 'block';
-    processingIndicator.style.display = 'none';
-    state.isProcessing = false;
-    downloadBtn.disabled = false;
-  }
+function done(resultUrl) {
+  state.processedDataUrl = resultUrl;
+  afterImg.src = resultUrl;
+  afterImg.style.display = 'block';
+  processingIndicator.style.display = 'none';
+  state.isProcessing = false;
+  downloadBtn.disabled = false;
+}
+function fail(err) {
+  processingIndicator.style.display = 'none';
+  state.isProcessing = false;
+  alert('Erreur : ' + (err.message || err));
+}
 
-  function fail(err) {
-    processingIndicator.style.display = 'none';
-    state.isProcessing = false;
-    alert('Erreur : ' + (err.message || err));
-  }
-
-  // ---- AI (HuggingFace + Canvas fallback) ----
-  var HF_TOKEN = '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';
+  // ---- AI dispatcher ----
   function processAI(mode, img) {
-    if (mode === 'colorize') return processHFColorize(img);
+    if (mode === 'colorize') return canvasColorize(img);
     if (mode === 'restore') return processRestore(img);
   }
 
-  // ---- Colorize (HuggingFace Inference API + Canvas fallback) ----
-  function processHFColorize(img) {
-    var c = document.createElement('canvas');
-    c.width = Math.min(img.width, 768);
-    c.height = Math.min(img.height, 768);
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0, c.width, c.height);
-    c.toBlob(function(blob) {
-      // Try JSON POST first (instruct-pix2pix format)
-      var reader = new FileReader();
-      reader.onload = function() {
-        var b64 = reader.result.split(',')[1];
-        tryJSON(b64, blob, img);
-      };
-      reader.readAsDataURL(blob);
-    }, 'image/jpeg', 0.85);
-  }
-
-  function tryJSON(b64, blob, img) {
-    var body = JSON.stringify({
-      inputs: "Colorize this black and white photograph, make it realistic natural colors, vibrant detailed high quality",
-      image: "data:image/jpeg;base64," + b64
-    });
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://api-inference.huggingface.co/models/timbrooks/instruct-pix2pix', true);
-    xhr.setRequestHeader('Authorization', 'Bearer ' + HF_TOKEN);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.responseType = 'blob';
-    xhr.onload = function() {
-      var ct = xhr.getResponseHeader('content-type') || '';
-      if (xhr.status === 200 && ct.includes('image')) {
-        processResult(xhr.response, img);
-      } else {
-        // Fallback: send raw bytes
-        tryRawBytes(blob, img);
-      }
-    };
-    xhr.onerror = function() { tryRawBytes(blob, img); };
-    xhr.send(body);
-  }
-
-  function tryRawBytes(blob, img) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://api-inference.huggingface.co/models/lllyasviel/sd-controlnet-canny', true);
-    xhr.setRequestHeader('Authorization', 'Bearer ' + HF_TOKEN);
-    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-    xhr.setRequestHeader('X-Use-Cache', 'false');
-    xhr.responseType = 'blob';
-    xhr.onload = function() {
-      var ct = xhr.getResponseHeader('content-type') || '';
-      if (xhr.status === 200 && ct.includes('image')) {
-        processResult(xhr.response, img);
-      } else { canvasColorize(img); }
-    };
-    xhr.onerror = function() { canvasColorize(img); };
-    xhr.send(blob);
-  }
-
-  function processResult(blob, img) {
-    var url = URL.createObjectURL(blob);
-    var ri = new Image();
-    ri.onload = function() {
-      var fc = document.createElement('canvas');
-      fc.width = img.width; fc.height = img.height;
-      var fctx = fc.getContext('2d');
-      fctx.drawImage(ri, 0, 0, img.width, img.height);
-      done(fc.toDataURL('image/png'));
-    };
-    ri.onerror = function() { canvasColorize(img); };
-    ri.src = url;
-  }
-
-  // ---- Canvas colorize fallback (v2: multi-tone smart mapping) ----
+  // ---- Colorize (Canvas: smart color mapping v3) ----
   function canvasColorize(img) {
     var c = document.createElement('canvas');
     c.width = img.width; c.height = img.height;
@@ -586,65 +513,39 @@ function processWithCurrentTool() {
     var d = ctx.getImageData(0, 0, c.width, c.height);
     var data = d.data, len = data.length;
 
-    // Histogram stretch first
+    // Histogram stretch
     var min = 255, max = 0;
     for (var i = 0; i < len; i += 4) {
-      var g = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      if (g < min) min = g; if (g > max) max = g;
+      var lum = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
+      if (lum < min) min = lum;
+      if (lum > max) max = lum;
     }
     var range = max - min || 1;
 
-    // Multi-tone color mapping: luminance → RGB color
-    function colorFromLum(lum) {
-      // Dark blue sky → warm skin → golden highlights
+    // Smooth color mapping: shadows cool, midtones warm, highlights golden
+    function mapColor(n) {
       var r, g, b;
-      if (lum < 0.2) {
-        // Deep shadows: subtle cool blue
-        var t = lum / 0.2;
-        r = 30 + t * 40;
-        g = 25 + t * 35;
-        b = 45 + t * 50;
-      } else if (lum < 0.4) {
-        // Shadows → midtones: earthy brown
-        var t = (lum - 0.2) / 0.2;
-        r = 70 + t * 70;
-        g = 60 + t * 60;
-        b = 95 - t * 30;
-      } else if (lum < 0.6) {
-        // Midtones: warm skin tones / greenery
-        var t = (lum - 0.4) / 0.2;
-        r = 140 + t * 60;
-        g = 120 + t * 55;
-        b = 65 + t * 20;
-      } else if (lum < 0.8) {
-        // Mid-highlights: golden warm
-        var t = (lum - 0.6) / 0.2;
-        r = 200 + t * 40;
-        g = 175 + t * 50;
-        b = 85 + t * 45;
-      } else {
-        // Highlights: bright warm
-        var t = (lum - 0.8) / 0.2;
-        r = 240 + t * 15;
-        g = 225 + t * 30;
-        b = 130 + t * 125;
-      }
-      return { r: Math.max(0, Math.min(255, r)), g: Math.max(0, Math.min(255, g)), b: Math.max(0, Math.min(255, b)) };
+           if (n < 0.15) { var t = n / 0.15; r = 20+40*t;  g = 15+35*t;  b = 35+50*t;  }
+      else if (n < 0.35) { var t = (n-0.15)/0.20; r = 60+60*t;  g = 50+55*t;  b = 85-10*t;  }
+      else if (n < 0.55) { var t = (n-0.35)/0.20; r = 120+70*t; g = 105+65*t; b = 75+15*t;  }
+      else if (n < 0.75) { var t = (n-0.55)/0.20; r = 190+45*t; g = 170+50*t; b = 90+40*t;  }
+      else               { var t = (n-0.75)/0.25; r = 235+20*t; g = 220+35*t; b = 130+120*t; }
+      return { r: Math.min(255, Math.max(0, r)), g: Math.min(255, Math.max(0, g)), b: Math.min(255, Math.max(0, b)) };
     }
 
     for (var i = 0; i < len; i += 4) {
       var gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      var n = (gray - min) / range; // 0..1 normalized luminance
-      var col = colorFromLum(n);
-      // Blend: 70% colorized + 30% original (for subtlety)
-      data[i] = Math.min(255, col.r * 0.7 + gray * 0.3);
-      data[i+1] = Math.min(255, col.g * 0.7 + gray * 0.3);
-      data[i+2] = Math.min(255, col.b * 0.7 + gray * 0.3);
-      // Boost saturation
+      var n = (gray - min) / range;
+      var col = mapColor(n);
+      // 85% color + 15% original
+      data[i] = col.r * 0.85 + gray * 0.15;
+      data[i+1] = col.g * 0.85 + gray * 0.15;
+      data[i+2] = col.b * 0.85 + gray * 0.15;
+      // Saturation boost 1.8x
       var avg = (data[i] + data[i+1] + data[i+2]) / 3;
-      data[i] = Math.min(255, avg + (data[i] - avg) * 1.3);
-      data[i+1] = Math.min(255, avg + (data[i+1] - avg) * 1.3);
-      data[i+2] = Math.min(255, avg + (data[i+2] - avg) * 1.3);
+      data[i] = Math.min(255, avg + (data[i] - avg) * 1.8);
+      data[i+1] = Math.min(255, avg + (data[i+1] - avg) * 1.8);
+      data[i+2] = Math.min(255, avg + (data[i+2] - avg) * 1.8);
     }
 
     ctx.putImageData(d, 0, 0);
@@ -891,7 +792,6 @@ function processWithCurrentTool() {
     ctx.putImageData(imageData, 0, 0);
     done(c.toDataURL('image/png'));
   }
-}
 
 // ---- Download ----
 downloadBtn.addEventListener('click', function() {
