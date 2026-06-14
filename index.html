@@ -266,31 +266,10 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
     <ol style="color:var(--text-400);line-height:1.8;padding-left:20px">
       <li>Uploadez une image (PNG, JPG, WebP)</li>
       <li>Choisissez un outil (restauration, coloriage, upscaling, etc.)</li>
-      <li>L'image est traitée localement ou via l'API Pollinations AI</li>
+      <li>L'image est traitée localement (Canvas AI)</li>
       <li>Le résultat s'affiche avec un comparateur avant/après</li>
       <li>Téléchargez le résultat</li>
     </ol>
-
-    <h2>Outils</h2>
-    <table class="api-table">
-      <thead><tr><th>Outil</th><th>Backend</th><th>Type</th></tr></thead>
-      <tbody>
-        <tr><td>Restauration</td><td>Canvas (median + auto-contrast + sharpen)</td><td>Local (hors-ligne)</td></tr>
-        <tr><td>Coloriage</td><td>Canvas (auto-levels + warm tint + saturation)</td><td>Local (hors-ligne)</td></tr>
-        <tr><td>Upscaling (4x)</td><td>Canvas bicubic</td><td>Local (hors-ligne)</td></tr>
-        <tr><td>Défloutage</td><td>Canvas sharpen kernel</td><td>Local (hors-ligne)</td></tr>
-        <tr><td>Amélioration</td><td>Canvas filters</td><td>Local (hors-ligne)</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Limitations</h2>
-    <ul>
-      <li>Tous les outils fonctionnent hors-ligne (Canvas pur, zéro API)</li>
-      <li>Coloriage : approximation réaliste via auto-levels + teinte chaude</li>
-      <li>Restauration : débruitage + contraste + netteté</li>
-      <li>Taille max : 10MB par image</li>
-      <li>Formats supportés : PNG, JPG, WebP</li>
-    </ul>
 
     <h2>Technologies</h2>
     <p>
@@ -482,92 +461,135 @@ function processWithCurrentTool() {
     }
   };
   img.src = state.originalDataUrl;
+}
 
-  function done(resultUrl) {
-    state.processedDataUrl = resultUrl;
-    afterImg.src = resultUrl;
-    afterImg.style.display = 'block';
-    processingIndicator.style.display = 'none';
-    state.isProcessing = false;
-    downloadBtn.disabled = false;
-  }
+function done(resultUrl) {
+  state.processedDataUrl = resultUrl;
+  afterImg.src = resultUrl;
+  afterImg.style.display = 'block';
+  processingIndicator.style.display = 'none';
+  state.isProcessing = false;
+  downloadBtn.disabled = false;
+}
+function fail(err) {
+  processingIndicator.style.display = 'none';
+  state.isProcessing = false;
+  alert('Erreur : ' + (err.message || err));
+}
 
-  function fail(err) {
-    processingIndicator.style.display = 'none';
-    state.isProcessing = false;
-    alert('Erreur : ' + (err.message || err));
-  }
-
-  // ---- AI (DeepAI + Canvas fallback) ----
-  var DEEPAI_KEY = 'ea0c9e46-7da6-4cbf-b4e0-ae672a26de50';
+  // ---- AI dispatcher ----
   function processAI(mode, img) {
-    if (mode === 'colorize') return processDeepColorize(img);
+    if (mode === 'colorize') return canvasColorize(img);
     if (mode === 'restore') return processRestore(img);
   }
 
-  // ---- Colorize (DeepAI API + Canvas fallback) ----
-  function processDeepColorize(img) {
-    var c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    c.toBlob(function(blob) {
-      var fd = new FormData();
-      fd.append('image', blob, 'image.jpg');
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://api.deepai.org/api/colorizer', true);
-      xhr.setRequestHeader('api-key', DEEPAI_KEY);
-      xhr.onload = function() {
-        try {
-          var resp = JSON.parse(xhr.responseText);
-          if (resp && resp.output_url) {
-            var resultImg = new Image();
-            resultImg.crossOrigin = 'anonymous';
-            resultImg.onload = function() {
-              var fc = document.createElement('canvas');
-              fc.width = img.width; fc.height = img.height;
-              var fctx = fc.getContext('2d');
-              fctx.drawImage(resultImg, 0, 0, img.width, img.height);
-              done(fc.toDataURL('image/png'));
-            };
-            resultImg.onerror = function() { canvasColorize(img); };
-            resultImg.src = resp.output_url;
-          } else { canvasColorize(img); }
-        } catch(e) { canvasColorize(img); }
-      };
-      xhr.onerror = function() { canvasColorize(img); };
-      xhr.send(fd);
-    }, 'image/jpeg', 0.85);
-  }
-
-  // ---- Canvas colorize fallback ----
+  // ---- Colorize (Canvas: smart color mapping v4 - local contrast aware) ----
   function canvasColorize(img) {
     var c = document.createElement('canvas');
     c.width = img.width; c.height = img.height;
     var ctx = c.getContext('2d');
     ctx.drawImage(img, 0, 0);
     var d = ctx.getImageData(0, 0, c.width, c.height);
-    var data = d.data, len = data.length;
+    var data = d.data, w = c.width, h = c.height, len = data.length;
+
+    // Histogram stretch
     var min = 255, max = 0;
     for (var i = 0; i < len; i += 4) {
-      var g = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      if (g < min) min = g; if (g > max) max = g;
+      var gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
+      if (gray < min) min = gray;
+      if (gray > max) max = gray;
     }
     var range = max - min || 1;
+
+    // Precompute stretched luminance
+    var lum = new Float32Array(w * h);
     for (var i = 0; i < len; i += 4) {
-      var n = ((data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114) - min) / range;
-      var rt = n * 255;
-      data[i] = Math.min(255, rt + 20 + Math.sin(n * Math.PI) * 25);
-      data[i+1] = Math.min(255, rt + 10 + Math.sin(n * Math.PI) * 10);
-      data[i+2] = Math.min(255, rt + 30 - Math.sin(n * Math.PI) * 15);
-      var avg = (data[i] + data[i+1] + data[i+2]) / 3;
-      data[i] = Math.min(255, avg + (data[i] - avg) * 1.2);
-      data[i+1] = Math.min(255, avg + (data[i+1] - avg) * 1.2);
-      data[i+2] = Math.min(255, avg + (data[i+2] - avg) * 1.2);
-      data[i] = Math.max(0, Math.min(255, (data[i] - 128) * 1.1 + 128));
-      data[i+1] = Math.max(0, Math.min(255, (data[i+1] - 128) * 1.1 + 128));
-      data[i+2] = Math.max(0, Math.min(255, (data[i+2] - 128) * 1.1 + 128));
+      var g = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
+      lum[i>>2] = (g - min) / range;
     }
+
+    // Compute local contrast per pixel (3x3 window std-dev approximation)
+    var detail = new Float32Array(w * h);
+    for (var y = 1; y < h-1; y++) {
+      for (var x = 1; x < w-1; x++) {
+        var idx = y * w + x;
+        var sum = 0, sum2 = 0;
+        for (var ky = -1; ky <= 1; ky++) {
+          for (var kx = -1; kx <= 1; kx++) {
+            var v = lum[(y+ky)*w + (x+kx)];
+            sum += v; sum2 += v*v;
+          }
+        }
+        var mean = sum / 9;
+        detail[idx] = Math.sqrt(sum2/9 - mean*mean);
+      }
+    }
+
+    // Colorize with local-contrast-aware palette blending
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var idx = y * w + x;
+        var i4 = idx << 2;
+        var n = lum[idx];
+        var det = detail[idx];
+
+        // Blend between cool (smooth=sky) and warm (detailed=foreground) palettes
+        var cool = det < 0.04 ? 0.6 : det < 0.08 ? 0.3 : 0.0;
+
+        // Shadows: deep blue (cool) / earthy brown (warm)
+        var sr, sg, sb;
+        if (n < 0.2) {
+          var t = n / 0.2;
+          sr = 15+25*t; sg = 10+20*t; sb = 30+45*t;
+        } else if (n < 0.4) {
+          var t = (n-0.2)/0.2;
+          sr = 40+60*t; sg = 30+55*t; sb = 75-15*t;
+        } else if (n < 0.6) {
+          var t = (n-0.4)/0.2;
+          sr = 100+80*t; sg = 85+75*t; sb = 60+15*t;
+        } else if (n < 0.8) {
+          var t = (n-0.6)/0.2;
+          sr = 180+55*t; sg = 160+60*t; sb = 75+45*t;
+        } else {
+          var t = (n-0.8)/0.2;
+          sr = 235+20*t; sg = 220+35*t; sb = 120+130*t;
+        }
+
+        // Warm palette (foreground): shifted towards green/earth
+        var wr, wg, wb;
+        if (n < 0.2) {
+          var t = n / 0.2;
+          wr = 25+35*t; wg = 20+30*t; wb = 20+35*t;
+        } else if (n < 0.4) {
+          var t = (n-0.2)/0.2;
+          wr = 60+75*t; wg = 50+80*t; wb = 55-5*t;
+        } else if (n < 0.6) {
+          var t = (n-0.4)/0.2;
+          wr = 135+85*t; wg = 130+90*t; wb = 50+30*t;
+        } else if (n < 0.8) {
+          var t = (n-0.6)/0.2;
+          wr = 220+35*t; wg = 220+35*t; wb = 80+50*t;
+        } else {
+          var t = (n-0.8)/0.2;
+          wr = 255+0*t; wg = 255+0*t; wb = 130+125*t;
+        }
+
+        var col_r = sr * cool + wr * (1-cool);
+        var col_g = sg * cool + wg * (1-cool);
+        var col_b = sb * cool + wb * (1-cool);
+
+        // Blend 90% color + 10% original, then boost saturation
+        var orig = lum[idx] * range + min;
+        var r = col_r * 0.9 + orig * 0.1;
+        var g = col_g * 0.9 + orig * 0.1;
+        var b = col_b * 0.9 + orig * 0.1;
+        var avg = (r+g+b)/3;
+        data[i4]   = Math.min(255, avg + (r-avg)*2.0);
+        data[i4+1] = Math.min(255, avg + (g-avg)*2.0);
+        data[i4+2] = Math.min(255, avg + (b-avg)*2.0);
+      }
+    }
+
     ctx.putImageData(d, 0, 0);
     done(c.toDataURL('image/png'));
   }
@@ -812,7 +834,6 @@ function processWithCurrentTool() {
     ctx.putImageData(imageData, 0, 0);
     done(c.toDataURL('image/png'));
   }
-}
 
 // ---- Download ----
 downloadBtn.addEventListener('click', function() {
