@@ -81,20 +81,7 @@ main{flex:1;max-width:1200px;margin:0 auto;padding:16px;width:100%}
 .doc-content li{margin-bottom:4px}
 footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);border-top:1px solid var(--bg-800);margin-top:32px}
 
-/* Settings Modal */
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:16px}
-.modal-overlay.open{display:flex}
-.modal{background:var(--bg-900);border:1px solid var(--bg-700);border-radius:16px;padding:24px;max-width:400px;width:100%}
-.modal h2{font-size:1.125rem;font-weight:600;margin-bottom:16px;color:var(--text-200)}
-.modal label{display:block;font-size:.875rem;color:var(--text-400);margin-bottom:6px}
-.modal input[type="text"]{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--bg-700);background:var(--bg-800);color:var(--text-100);font-size:.9rem;font-family:monospace;outline:none;transition:border-color .2s}
-.modal input[type="text"]:focus{border-color:var(--amber-500)}
-.modal .hint{font-size:.75rem;color:var(--text-500);margin-top:6px;line-height:1.4}
-.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
-.modal .btn-primary{background:var(--amber-500);color:#000}
-.modal .btn-primary:hover{opacity:.9}
-.modal .btn-secondary{background:var(--bg-700);color:var(--text-300)}
-.mt-8{margin-top:8px}
+
 </style>
 </head>
 <body>
@@ -105,12 +92,7 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
     <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
     <span class="logo-text">AI Image Enhancer</span>
   </a>
-  <div class="header-right">
-    <span id="tokenIndicator" class="token-status nok" title="Token API non configuré"></span>
-    <button class="settings-btn" id="settingsBtn" title="Configurer le token Hugging Face">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-    </button>
-    <nav>
+  <nav>
       <a href="#accueil" data-page="accueil" class="active">Accueil</a>
       <a href="#docs" data-page="docs">Docs</a>
     </nav>
@@ -194,34 +176,25 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
     <p>Comment utiliser l'outil avec Hugging Face.</p>
   </div>
   <div class="doc-content">
-    <h2>Configuration</h2>
+    <h2>Comment ça marche</h2>
     <ol style="color:var(--text-400);line-height:1.8;padding-left:20px">
-      <li>Cliquez sur l'icône ⚙️ en haut à droite</li>
-      <li>Entrez votre token API Hugging Face (créé dans Settings &gt; Access Tokens)</li>
-      <li>Uploadez une image et choisissez un outil</li>
-      <li>L'image est envoyée à l'API Hugging Face pour traitement</li>
+      <li>Uploadez une image</li>
+      <li>Choisissez un outil (restauration, coloriage, upscaling, etc.)</li>
+      <li>L'image est envoyée au proxy Vercel qui appelle Hugging Face</li>
       <li>Téléchargez le résultat</li>
     </ol>
 
     <h2>Modèles utilisés</h2>
     <p style="color:var(--text-400);line-height:1.6">
-      Chaque outil utilise un modèle Hugging Face différent :<br><br>
       <strong>Restauration / Amélioration / Défloutage :</strong><br>
       <code style="color:var(--amber-400)">caidas/swin2sr-classical-sr-x4-v2</code><br>
-      Super-résolution pour améliorer la qualité<br><br>
+      Super-résolution<br><br>
       <strong>Upscaling (4x) :</strong><br>
       <code style="color:var(--amber-400)">caidas/swin2sr-classical-sr-x4-v2</code><br>
-      Agrandissement 4x par super-résolution<br><br>
+      Agrandissement 4x<br><br>
       <strong>Coloriage :</strong><br>
       <code style="color:var(--amber-400)">timbrooks/instruct-pix2pix</code><br>
-      Colorisation par édition d'image guidée
-    </p>
-
-    <h2>Token API</h2>
-    <p style="color:var(--text-400);line-height:1.6">
-      Créez votre token gratuit sur <a href="https://huggingface.co/settings/tokens" style="color:var(--amber-400)">huggingface.co/settings/tokens</a>.<br>
-      Utilisez un token avec le scope <strong>"Inference API"</strong>.<br>
-      Le token est stocké uniquement dans votre navigateur (localStorage).
+      Colorisation par IA
     </p>
   </div>
 </section>
@@ -229,51 +202,20 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
 
 <footer>AI Image Enhancer · Propulsé par Hugging Face</footer>
 
-<!-- Settings Modal -->
-<div class="modal-overlay" id="settingsModal">
-  <div class="modal">
-    <h2>Configuration API Hugging Face</h2>
-    <label for="hfToken">Token API</label>
-    <div style="position:relative">
-      <input type="password" id="hfToken" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--bg-700);background:var(--bg-800);color:var(--text-100);font-size:.9rem;font-family:monospace;outline:none;box-sizing:border-box;padding-right:40px">
-      <button id="toggleToken" type="button" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-500);cursor:pointer;padding:4px;font-size:14px" title="Afficher/masquer">👁️</button>
-    </div>
-    <div class="hint">
-      Créez un token sur <strong>huggingface.co/settings/tokens</strong>.<br>
-      Le token est stocké localement dans votre navigateur.
-    </div>
-    <div class="mt-8">
-      <label for="hfModel">Modèle (optionnel)</label>
-      <input type="text" id="hfModel" placeholder="caidas/swin2sr-classical-sr-x4-v2" autocomplete="off">
-      <div class="hint">Laissez vide pour utiliser le modèle par défaut.</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="modalCancel">Annuler</button>
-      <button class="btn btn-primary" id="modalSave">Enregistrer</button>
-    </div>
-  </div>
-</div>
+
 
 <script>
 (function(){
 'use strict';
 
-var DEFAULT_MODELS = {
-  restore: 'caidas/swin2sr-classical-sr-x4-v2',
-  colorize: 'timbrooks/instruct-pix2pix',
-  upscale: 'caidas/swin2sr-classical-sr-x4-v2',
-  deblur: 'caidas/swin2sr-classical-sr-x4-v2',
-  enhance: 'caidas/swin2sr-classical-sr-x4-v2'
-};
+var PROXY_URL = 'https://ai-image-enhancer-public.vercel.app/api/enhance';
 
 var state = {
   currentTool: 'restore',
   originalFile: null,
   originalDataUrl: null,
   processedDataUrl: null,
-  isProcessing: false,
-  token: localStorage.getItem('hf_token') || '',
-  customModel: localStorage.getItem('hf_model') || ''
+  isProcessing: false
 };
 
 var uploadZone = document.getElementById('uploadZone');
@@ -282,7 +224,6 @@ var resultArea = document.getElementById('resultArea');
 var beforeImg = document.getElementById('beforeImg');
 var afterImg = document.getElementById('afterImg');
 var processingIndicator = document.getElementById('processingIndicator');
-var processingMsg = document.getElementById('processingMsg');
 var errorMsg = document.getElementById('errorMsg');
 var downloadBtn = document.getElementById('downloadBtn');
 var resetBtn = document.getElementById('resetBtn');
@@ -292,23 +233,6 @@ var pages = {
   accueil: document.getElementById('page-accueil'),
   docs: document.getElementById('page-docs')
 };
-var settingsBtn = document.getElementById('settingsBtn');
-var settingsModal = document.getElementById('settingsModal');
-var hfTokenInput = document.getElementById('hfToken');
-var hfModelInput = document.getElementById('hfModel');
-var modalCancel = document.getElementById('modalCancel');
-var modalSave = document.getElementById('modalSave');
-var tokenIndicator = document.getElementById('tokenIndicator');
-
-function updateTokenIndicator() {
-  if (state.token) {
-    tokenIndicator.className = 'token-status ok';
-    tokenIndicator.title = 'Token API configuré';
-  } else {
-    tokenIndicator.className = 'token-status nok';
-    tokenIndicator.title = 'Token API non configuré';
-  }
-}
 
 function navigate(hash) {
   var pageId = hash.replace('#','') || 'accueil';
@@ -336,9 +260,7 @@ toolBtns.forEach(function(btn) {
     toolBtns.forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
     state.currentTool = btn.dataset.tool;
-    if (state.processedDataUrl) {
-      processWithCurrentTool();
-    }
+    if (state.processedDataUrl) processImage();
   });
 });
 
@@ -376,127 +298,56 @@ function handleFile(file) {
     uploadZone.style.display = 'none';
     errorMsg.style.display = 'none';
     resultArea.classList.add('visible');
-    processWithCurrentTool();
+    processImage();
   };
   reader.readAsDataURL(file);
 }
 
-function processWithCurrentTool() {
+function processImage() {
   if (!state.originalDataUrl || state.isProcessing) return;
-  if (!state.token) {
-    showError('Configurez votre token Hugging Face (⚙️ en haut à droite)');
-    return;
-  }
   state.isProcessing = true;
   processingIndicator.style.display = 'block';
-  processingMsg.textContent = 'Envoi à Hugging Face...';
   afterImg.style.display = 'none';
   state.processedDataUrl = null;
   downloadBtn.disabled = true;
   errorMsg.style.display = 'none';
 
-  var tool = state.currentTool;
-  var modelId = state.customModel || DEFAULT_MODELS[tool];
-
-  processingMsg.textContent = 'Traitement par ' + modelId + '...';
-
-  callHuggingFaceAPI(modelId, state.originalDataUrl, tool)
-    .then(function(resultUrl) {
-      state.processedDataUrl = resultUrl;
-      afterImg.src = resultUrl;
-      afterImg.style.display = 'block';
-      processingIndicator.style.display = 'none';
-      state.isProcessing = false;
-      downloadBtn.disabled = false;
+  fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      image: state.originalDataUrl,
+      tool: state.currentTool
     })
-    .catch(function(err) {
-      processingIndicator.style.display = 'none';
-      state.isProcessing = false;
-      showError('Erreur : ' + (err.message || err) + '. Vérifiez votre token et le modèle.');
-    });
-}
-
-function callHuggingFaceAPI(modelId, imageDataUrl, tool) {
-  return new Promise(function(resolve, reject) {
-    var blob = dataURLToBlob(imageDataUrl);
-    var ext = blob.type === 'image/png' ? 'png' : 'jpeg';
-
-    var url = 'https://api-inference.huggingface.co/models/' + modelId;
-
-    var fetchOptions = {
-      headers: {
-        'Authorization': 'Bearer ' + state.token
-      },
-      method: 'POST'
-    };
-
-    if (modelId === 'timbrooks/instruct-pix2pix') {
-      var prompt = 'colorize this black and white photo, realistic colors';
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        var base64 = e.target.result.split(',')[1];
-        fetchOptions.headers['Content-Type'] = 'application/json';
-        fetchOptions.body = JSON.stringify({
-          inputs: base64,
-          parameters: { prompt: prompt }
-        });
-        doFetch(url, fetchOptions, resolve, reject);
-      };
-      reader.readAsDataURL(blob);
-    } else {
-      fetchOptions.headers['Content-Type'] = 'image/' + ext;
-      fetchOptions.body = blob;
-      doFetch(url, fetchOptions, resolve, reject);
+  })
+  .then(function(resp) {
+    var ct = resp.headers.get('content-type') || '';
+    if (!resp.ok) {
+      return resp.json().then(function(j) { throw new Error(j.error || 'Erreur serveur'); });
     }
-  });
-}
-
-function doFetch(url, options, resolve, reject) {
-  fetch(url, options)
-    .then(function(response) {
-      var contentType = response.headers.get('content-type') || '';
-      if (!response.ok) {
-        return response.text().then(function(text) {
-          var msg = text;
-          try { var j = JSON.parse(text); msg = j.error || text; } catch(e) {}
-          reject(new Error('HTTP ' + response.status + ': ' + msg));
-        });
-      }
-      if (contentType.includes('application/json')) {
-        return response.json().then(function(json) {
-          if (json.error) {
-            reject(new Error(json.error));
-          } else if (json.image) {
-            resolve('data:image/png;base64,' + json.image);
-          } else {
-            reject(new Error('Réponse inattendue de l\'API'));
-          }
-        });
-      }
-      return response.blob().then(function(blob) {
-        resolve(URL.createObjectURL(blob));
+    if (ct.includes('application/json')) {
+      return resp.json().then(function(j) {
+        if (j.error) throw new Error(j.error);
+        if (j.image) return 'data:image/png;base64,' + j.image;
+        throw new Error('Réponse inattendue');
       });
-    })
-    .catch(function(err) {
-      reject(err);
-    });
-}
-
-function dataURLToBlob(dataUrl) {
-  var parts = dataUrl.split(',');
-  var mime = parts[0].match(/:(.*?);/)[1];
-  var bytes = atob(parts[1]);
-  var ab = new ArrayBuffer(bytes.length);
-  var ia = new Uint8Array(ab);
-  for (var i = 0; i < bytes.length; i++) {
-    ia[i] = bytes.charCodeAt(i);
-  }
-  return new Blob([ab], { type: mime });
-}
-
-function showError(msg) {
-  errorMsg.textContent = msg;
-  errorMsg.style.display = 'block';
+    }
+    return resp.blob().then(function(b) { return URL.createObjectURL(b); });
+  })
+  .then(function(url) {
+    state.processedDataUrl = url;
+    afterImg.src = url;
+    afterImg.style.display = 'block';
+    processingIndicator.style.display = 'none';
+    state.isProcessing = false;
+    downloadBtn.disabled = false;
+  })
+  .catch(function(err) {
+    processingIndicator.style.display = 'none';
+    state.isProcessing = false;
+    errorMsg.textContent = 'Erreur : ' + (err.message || err) + '. Vérifiez que le proxy Vercel est configuré.';
+    errorMsg.style.display = 'block';
+  });
 }
 
 downloadBtn.addEventListener('click', function() {
@@ -523,45 +374,6 @@ resetBtn.addEventListener('click', function() {
   downloadBtn.disabled = true;
 });
 
-// Toggle token visibility
-var toggleToken = document.getElementById('toggleToken');
-if (toggleToken) {
-  toggleToken.addEventListener('click', function() {
-    if (hfTokenInput.type === 'password') {
-      hfTokenInput.type = 'text';
-      toggleToken.textContent = '🙈';
-    } else {
-      hfTokenInput.type = 'password';
-      toggleToken.textContent = '👁️';
-    }
-  });
-}
-
-// Settings modal
-settingsBtn.addEventListener('click', function() {
-  hfTokenInput.value = state.token;
-  hfModelInput.value = state.customModel;
-  settingsModal.classList.add('open');
-});
-
-modalCancel.addEventListener('click', function() {
-  settingsModal.classList.remove('open');
-});
-
-modalSave.addEventListener('click', function() {
-  state.token = hfTokenInput.value.trim();
-  state.customModel = hfModelInput.value.trim();
-  localStorage.setItem('hf_token', state.token);
-  localStorage.setItem('hf_model', state.customModel);
-  updateTokenIndicator();
-  settingsModal.classList.remove('open');
-});
-
-settingsModal.addEventListener('click', function(e) {
-  if (e.target === settingsModal) settingsModal.classList.remove('open');
-});
-
-updateTokenIndicator();
 })();
 </script>
 </body>
