@@ -4,39 +4,39 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Image Enhancer — Traitement d'images par IA</title>
-<meta name="description" content="Restaurez, colorez, upscalez et améliorez vos images gratuitement grâce à l'intelligence artificielle.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://ucfzem.github.io/ai-image-enhancer/">
+<meta name="description" content="Restaurez, colorez, upscalez et améliorez vos images avec l'IA via Hugging Face.">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{--bg-950:#0c0a09;--bg-900:#1c1917;--bg-800:#292524;--bg-700:#44403c;--bg-600:#57534e;--text-100:#f5f5f4;--text-200:#e7e5e4;--text-300:#d6d3d1;--text-400:#a8a29e;--text-500:#78716c;--amber-300:#fcd34d;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;--orange-500:#f97316;--orange-700:#c2410c}
 html{scroll-behavior:smooth}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg-950);color:var(--text-100);min-height:100vh;display:flex;flex-direction:column}
 a{color:inherit;text-decoration:none}
-/* Header */
 header{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--bg-800);background:rgba(12,10,9,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .header-inner{max-width:1200px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:1.125rem}
 .logo-icon{width:20px;height:20px;color:var(--amber-400)}
 .logo-text{background:linear-gradient(135deg,var(--amber-400),var(--orange-500));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-right{display:flex;align-items:center;gap:8px}
+.settings-btn{background:none;border:none;color:var(--text-500);cursor:pointer;padding:6px;border-radius:6px;transition:all .2s;display:flex}
+.settings-btn:hover{color:var(--text-100);background:rgba(255,255,255,.05)}
+.settings-btn svg{width:20px;height:20px}
+.token-status{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
+.token-status.ok{background:#22c55e}
+.token-status.nok{background:#ef4444}
 nav{display:flex;align-items:center;gap:4px;font-size:.875rem}
 nav a{padding:6px 12px;color:var(--text-400);border-radius:6px;transition:color .2s,background .2s;cursor:pointer}
 nav a:hover,nav a.active{color:var(--text-100);background:rgba(255,255,255,.05)}
-/* Main */
 main{flex:1;max-width:1200px;margin:0 auto;padding:16px;width:100%}
 .page{display:none;animation:fadeIn .3s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-/* Hero */
 .hero{text-align:center;padding-top:16px}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:9999px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--amber-400);font-size:.875rem;font-weight:500;margin-bottom:12px}
 .hero-badge svg{width:16px;height:16px}
 .hero h1{font-size:clamp(1.75rem,5vw,3rem);font-weight:700;background:linear-gradient(135deg,var(--amber-400),var(--amber-600),var(--orange-700));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
 .hero p{color:var(--text-400);max-width:600px;margin:0 auto;font-size:1rem}
-/* Layout */
 .grid-2{display:grid;grid-template-columns:1fr;gap:24px;margin-top:32px}
 @media(min-width:1024px){.grid-2{grid-template-columns:4fr 8fr}}
-/* Tool selector */
 .tool-section h2{display:flex;align-items:center;gap:8px;font-size:1.125rem;font-weight:600;color:var(--text-200);margin-bottom:16px}
 .tool-section h2 svg{width:20px;height:20px;color:var(--amber-400)}
 .tools{display:flex;flex-direction:column;gap:12px}
@@ -48,7 +48,6 @@ main{flex:1;max-width:1200px;margin:0 auto;padding:16px;width:100%}
 .tool-btn .icon svg{width:20px;height:20px}
 .tool-btn .label{font-weight:500;color:var(--text-100)}
 .tool-btn .desc{font-size:.875rem;color:var(--text-500);margin-top:2px}
-/* Upload zone */
 .upload-zone{border:2px dashed var(--bg-700);border-radius:16px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .3s;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .upload-zone:hover,.upload-zone.dragover{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.03)}
 .upload-zone .icon-wrap{width:80px;height:80px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;background:var(--bg-800);transition:all .3s}
@@ -57,7 +56,6 @@ main{flex:1;max-width:1200px;margin:0 auto;padding:16px;width:100%}
 .upload-zone p.title{font-size:1.25rem;font-weight:500;color:var(--text-200)}
 .upload-zone p.sub{font-size:.875rem;color:var(--text-500);margin-top:8px}
 .upload-zone input{display:none}
-/* Result area */
 .result-area{display:none;flex-direction:column;gap:16px}
 .result-area.visible{display:flex}
 .comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px;border-radius:12px;overflow:hidden;border:1px solid var(--bg-700)}
@@ -73,56 +71,30 @@ main{flex:1;max-width:1200px;margin:0 auto;padding:16px;width:100%}
 .btn-secondary{background:var(--bg-800);color:var(--text-300);border:1px solid var(--bg-700)}
 .btn-secondary:hover{background:var(--bg-700);color:var(--text-100)}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-/* Gallery */
-.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:16px}
-.gallery-card{border-radius:12px;overflow:hidden;border:1px solid var(--bg-700);background:var(--bg-900)}
-.gallery-card .pair{display:grid;grid-template-columns:1fr 1fr}
-.gallery-card .pair img{width:100%;aspect-ratio:1;object-fit:cover}
-.gallery-card .info{padding:12px 16px}
-.gallery-card .info h3{font-size:.95rem;font-weight:600}
-.gallery-card .info p{font-size:.8rem;color:var(--text-500);margin-top:2px}
-/* Doc page */
-.doc-content{max-width:700px;margin:0 auto;padding:24px 0}
-.doc-content h2{font-size:1.3rem;font-weight:600;margin-top:32px;margin-bottom:12px;color:var(--text-200)}
-.doc-content h3{font-size:1rem;font-weight:600;margin-top:24px;margin-bottom:8px;color:var(--text-300)}
-.doc-content p,.doc-content li{color:var(--text-400);line-height:1.6;font-size:.95rem}
-.doc-content ul{padding-left:20px;margin:8px 0}
-.doc-content li{margin-bottom:4px}
-.doc-content .api-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:.875rem}
-.doc-content .api-table th,.doc-content .api-table td{border:1px solid var(--bg-700);padding:8px 12px;text-align:left}
-.doc-content .api-table th{background:var(--bg-800);color:var(--text-300);font-weight:600}
-.doc-content .api-table td{color:var(--text-400)}
-.doc-content pre{background:var(--bg-900);border:1px solid var(--bg-700);border-radius:8px;padding:16px;overflow-x:auto;font-size:.8rem;color:var(--text-300);margin:12px 0;white-space:pre-wrap;word-break:break-word}
-.code-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:6px;font-size:.75rem;font-weight:600;margin-right:6px;margin-bottom:4px}
-.code-badge.green{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
-.code-badge.yellow{background:rgba(245,158,11,.15);color:var(--amber-400);border:1px solid rgba(245,158,11,.25)}
-.code-badge.red{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.25)}
-.code-badge.blue{background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.25)}
-/* API page */
-.api-content{max-width:700px;margin:0 auto;padding:24px 0}
-.api-content h2{font-size:1.3rem;font-weight:600;margin-bottom:12px;color:var(--text-200)}
-.api-content h3{font-size:1rem;font-weight:600;margin-top:24px;margin-bottom:8px;color:var(--text-300)}
-.api-content p{color:var(--text-400);line-height:1.6;font-size:.95rem}
-.api-content pre{background:var(--bg-900);border:1px solid var(--bg-700);border-radius:8px;padding:16px;overflow-x:auto;font-size:.8rem;color:var(--text-300);margin:12px 0;white-space:pre-wrap;word-break:break-word}
-/* Page header */
 .page-header{text-align:center;padding:24px 0 16px}
 .page-header h1{font-size:1.75rem;font-weight:700;background:linear-gradient(135deg,var(--amber-400),var(--orange-500));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .page-header p{color:var(--text-500);margin-top:4px;font-size:.95rem}
-/* Footer */
+.doc-content{max-width:700px;margin:0 auto;padding:24px 0}
+.doc-content h2{font-size:1.3rem;font-weight:600;margin-top:32px;margin-bottom:12px;color:var(--text-200)}
+.doc-content p,.doc-content li{color:var(--text-400);line-height:1.6;font-size:.95rem}
+.doc-content ul{padding-left:20px;margin:8px 0}
+.doc-content li{margin-bottom:4px}
 footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);border-top:1px solid var(--bg-800);margin-top:32px}
-/* Responsive */
-@media(max-width:640px){
-  .header-inner{flex-wrap:wrap;height:auto;padding:8px 16px;gap:4px}
-  nav{gap:2px;width:100%;justify-content:center}
-  nav a{padding:4px 8px;font-size:.8rem}
-  .comparison{grid-template-columns:1fr}
-  .comparison > div{max-height:250px}
-  .gallery-grid{grid-template-columns:1fr}
-  .upload-zone{padding:24px 16px;min-height:200px}
-  .upload-zone .icon-wrap{width:60px;height:60px;margin-bottom:16px}
-  .upload-zone .icon-wrap svg{width:30px;height:30px}
-  .upload-zone p.title{font-size:1rem}
-}
+
+/* Settings Modal */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-900);border:1px solid var(--bg-700);border-radius:16px;padding:24px;max-width:400px;width:100%}
+.modal h2{font-size:1.125rem;font-weight:600;margin-bottom:16px;color:var(--text-200)}
+.modal label{display:block;font-size:.875rem;color:var(--text-400);margin-bottom:6px}
+.modal input[type="text"]{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--bg-700);background:var(--bg-800);color:var(--text-100);font-size:.9rem;font-family:monospace;outline:none;transition:border-color .2s}
+.modal input[type="text"]:focus{border-color:var(--amber-500)}
+.modal .hint{font-size:.75rem;color:var(--text-500);margin-top:6px;line-height:1.4}
+.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.modal .btn-primary{background:var(--amber-500);color:#000}
+.modal .btn-primary:hover{opacity:.9}
+.modal .btn-secondary{background:var(--bg-700);color:var(--text-300)}
+.mt-8{margin-top:8px}
 </style>
 </head>
 <body>
@@ -133,37 +105,34 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
     <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
     <span class="logo-text">AI Image Enhancer</span>
   </a>
-  <nav>
-    <a href="#accueil" data-page="accueil" class="active">Accueil</a>
-    <a href="#galerie" data-page="galerie">Galerie</a>
-    <a href="#docs" data-page="docs">Docs</a>
-    <a href="#api" data-page="api">API</a>
-  </nav>
+  <div class="header-right">
+    <span id="tokenIndicator" class="token-status nok" title="Token API non configuré"></span>
+    <button class="settings-btn" id="settingsBtn" title="Configurer le token Hugging Face">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+    <nav>
+      <a href="#accueil" data-page="accueil" class="active">Accueil</a>
+      <a href="#docs" data-page="docs">Docs</a>
+    </nav>
+  </div>
 </div>
 </header>
 
 <main>
-<!-- ========== PAGE ACCUEIL ========== -->
 <section id="page-accueil" class="page active">
   <div class="hero">
     <div class="hero-badge">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-        <path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>
-      </svg>
-      Propulsé par l'IA
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+      Propulsé par Hugging Face
     </div>
     <h1>AI Image Enhancer</h1>
-    <p>Restaurez, colorez et améliorez vos images en un clic grâce à l'IA.</p>
+    <p>Restaurez, colorez et améliorez vos images avec les modèles Hugging Face.</p>
   </div>
 
   <div class="grid-2">
     <div class="tool-section">
       <h2>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-          <path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
         Choisir un outil
       </h2>
       <div class="tools" id="toolList">
@@ -191,7 +160,6 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
     </div>
 
     <div>
-      <!-- Upload zone -->
       <div id="uploadZone" class="upload-zone">
         <div class="icon-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg>
@@ -201,13 +169,16 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
         <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
       </div>
 
-      <!-- Result area -->
       <div id="resultArea" class="result-area">
         <div class="comparison">
           <div><span class="label">Avant</span><img id="beforeImg" alt="Avant"></div>
           <div><span class="label">Après</span><img id="afterImg" alt="Après"></div>
         </div>
-        <div id="processingIndicator" style="display:none"><div class="spinner"></div><p style="text-align:center;color:var(--text-500);font-size:.875rem">Traitement en cours...</p></div>
+        <div id="processingIndicator" style="display:none">
+          <div class="spinner"></div>
+          <p id="processingMsg" style="text-align:center;color:var(--text-500);font-size:.875rem">Traitement via Hugging Face...</p>
+        </div>
+        <div id="errorMsg" style="display:none;padding:12px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;font-size:.875rem;text-align:center"></div>
         <div class="result-actions">
           <button class="btn btn-primary" id="downloadBtn">Télécharger</button>
           <button class="btn btn-secondary" id="resetBtn">Nouvelle image</button>
@@ -217,147 +188,125 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
   </div>
 </section>
 
-<!-- ========== PAGE GALERIE ========== -->
-<section id="page-galerie" class="page">
-  <div class="page-header">
-    <h1>Galerie d'exemples</h1>
-    <p>Résultats avant / après obtenus avec notre outil.</p>
-  </div>
-  <div class="gallery-grid">
-    <div class="gallery-card">
-      <div class="pair">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%2378716c' font-size='14' text-anchor='middle' dy='.3em'%3EAvant%3C/text%3E%3C/svg%3E" alt="Avant restauration">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23fbbf24' font-size='14' text-anchor='middle' dy='.3em'%3EAprès%3C/text%3E%3C/svg%3E" alt="Après restauration">
-      </div>
-      <div class="info"><h3>Restauration</h3><p>Photo ancienne restaurée — essayez avec vos propres photos</p></div>
-    </div>
-    <div class="gallery-card">
-      <div class="pair">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%2378716c' font-size='14' text-anchor='middle' dy='.3em'%3EAvant%3C/text%3E%3C/svg%3E" alt="Avant coloriage">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23fbbf24' font-size='14' text-anchor='middle' dy='.3em'%3EAprès%3C/text%3E%3C/svg%3E" alt="Après coloriage">
-      </div>
-      <div class="info"><h3>Coloriage</h3><p>Noir &amp; blanc colorisé automatiquement</p></div>
-    </div>
-    <div class="gallery-card">
-      <div class="pair">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%2378716c' font-size='14' text-anchor='middle' dy='.3em'%3EAvant%3C/text%3E%3C/svg%3E" alt="Avant upscaling">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23fbbf24' font-size='14' text-anchor='middle' dy='.3em'%3EAprès%3C/text%3E%3C/svg%3E" alt="Après upscaling">
-      </div>
-      <div class="info"><h3>Upscaling</h3><p>Agrandissement 4x sans perte</p></div>
-    </div>
-    <div class="gallery-card">
-      <div class="pair">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%2378716c' font-size='14' text-anchor='middle' dy='.3em'%3EAvant%3C/text%3E%3C/svg%3E" alt="Avant défloutage">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect fill='%23292524' width='300' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23fbbf24' font-size='14' text-anchor='middle' dy='.3em'%3EAprès%3C/text%3E%3C/svg%3E" alt="Après défloutage">
-      </div>
-      <div class="info"><h3>Défloutage</h3><p>Netteté restaurée sur photo floue</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ========== PAGE DOCS ========== -->
 <section id="page-docs" class="page">
   <div class="page-header">
     <h1>Documentation</h1>
-    <p>Comment fonctionne l'outil, ses limites et ses technologies.</p>
+    <p>Comment utiliser l'outil avec Hugging Face.</p>
   </div>
   <div class="doc-content">
-    <h2>Comment ça marche</h2>
+    <h2>Configuration</h2>
     <ol style="color:var(--text-400);line-height:1.8;padding-left:20px">
-      <li>Uploadez une image (PNG, JPG, WebP)</li>
-      <li>Choisissez un outil (restauration, coloriage, upscaling, etc.)</li>
-      <li>L'image est traitée localement (Canvas AI)</li>
-      <li>Le résultat s'affiche avec un comparateur avant/après</li>
+      <li>Cliquez sur l'icône ⚙️ en haut à droite</li>
+      <li>Entrez votre token API Hugging Face (créé dans Settings &gt; Access Tokens)</li>
+      <li>Uploadez une image et choisissez un outil</li>
+      <li>L'image est envoyée à l'API Hugging Face pour traitement</li>
       <li>Téléchargez le résultat</li>
     </ol>
 
-    <h2>Technologies</h2>
-    <p>
-      <span class="code-badge green">HTML / CSS / JS</span>
-      <span class="code-badge yellow">Canvas API</span>
-      <span class="code-badge blue">Convolution Kernel</span>
-      <span class="code-badge red">100% Hors-ligne</span>
+    <h2>Modèles utilisés</h2>
+    <p style="color:var(--text-400);line-height:1.6">
+      Chaque outil utilise un modèle Hugging Face différent :<br><br>
+      <strong>Restauration / Amélioration / Défloutage :</strong><br>
+      <code style="color:var(--amber-400)">caidas/swin2sr-classical-sr-x4-v2</code><br>
+      Super-résolution pour améliorer la qualité<br><br>
+      <strong>Upscaling (4x) :</strong><br>
+      <code style="color:var(--amber-400)">caidas/swin2sr-classical-sr-x4-v2</code><br>
+      Agrandissement 4x par super-résolution<br><br>
+      <strong>Coloriage :</strong><br>
+      <code style="color:var(--amber-400)">timbrooks/instruct-pix2pix</code><br>
+      Colorisation par édition d'image guidée
     </p>
-  </div>
-</section>
 
-<!-- ========== PAGE API ========== -->
-<section id="page-api" class="page">
-  <div class="page-header">
-    <h1>API Documentation</h1>
-    <p>Intégrez notre outil de traitement d'images dans vos propres applications.</p>
-  </div>
-  <div class="api-content">
-    <h2>Endpoint</h2>
-    <pre>POST /api/process</pre>
-
-    <h2>Paramètres</h2>
-    <table class="api-table">
-      <thead><tr><th>Paramètre</th><th>Type</th><th>Description</th></tr></thead>
-      <tbody>
-        <tr><td>image</td><td>File</td><td>Fichier image (PNG, JPG, WebP, max 10MB)</td></tr>
-        <tr><td>tool</td><td>string</td><td><code>restore</code>, <code>colorize</code>, <code>upscale</code>, <code>deblur</code>, ou <code>enhance</code></td></tr>
-      </tbody>
-    </table>
-
-    <h3>Exemple (fetch)</h3>
-    <pre>const formData = new FormData()
-formData.append('image', file)
-formData.append('tool', 'restore')
-
-const resp = await fetch('https://ucfzem.github.io/ai-image-enhancer/api/process', {
-  method: 'POST',
-  body: formData
-})
-
-const data = await resp.json()
-// { imageUrl: "...", success: true }</pre>
-
-    <h3>Réponse</h3>
-    <pre>{
-  "success": true,
-  "imageUrl": "https://...",
-  "tool": "restore",
-  "message": "Image traitée avec succès"
-}</pre>
+    <h2>Token API</h2>
+    <p style="color:var(--text-400);line-height:1.6">
+      Créez votre token gratuit sur <a href="https://huggingface.co/settings/tokens" style="color:var(--amber-400)">huggingface.co/settings/tokens</a>.<br>
+      Utilisez un token avec le scope <strong>"Inference API"</strong>.<br>
+      Le token est stocké uniquement dans votre navigateur (localStorage).
+    </p>
   </div>
 </section>
 </main>
 
-<footer>AI Image Enhancer · ucfzem.github.io</footer>
+<footer>AI Image Enhancer · Propulsé par Hugging Face</footer>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Configuration API Hugging Face</h2>
+    <label for="hfToken">Token API</label>
+    <input type="text" id="hfToken" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <div class="hint">
+      Créez un token sur <strong>huggingface.co/settings/tokens</strong>.<br>
+      Le token est stocké localement dans votre navigateur.
+    </div>
+    <div class="mt-8">
+      <label for="hfModel">Modèle (optionnel)</label>
+      <input type="text" id="hfModel" placeholder="caidas/swin2sr-classical-sr-x4-v2" autocomplete="off">
+      <div class="hint">Laissez vide pour utiliser le modèle par défaut.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="modalCancel">Annuler</button>
+      <button class="btn btn-primary" id="modalSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
 'use strict';
 
-// ---- State ----
+var DEFAULT_MODELS = {
+  restore: 'caidas/swin2sr-classical-sr-x4-v2',
+  colorize: 'timbrooks/instruct-pix2pix',
+  upscale: 'caidas/swin2sr-classical-sr-x4-v2',
+  deblur: 'caidas/swin2sr-classical-sr-x4-v2',
+  enhance: 'caidas/swin2sr-classical-sr-x4-v2'
+};
+
 var state = {
   currentTool: 'restore',
   originalFile: null,
   originalDataUrl: null,
   processedDataUrl: null,
-  isProcessing: false
+  isProcessing: false,
+  token: localStorage.getItem('hf_token') || '',
+  customModel: localStorage.getItem('hf_model') || ''
 };
 
-// ---- DOM refs ----
 var uploadZone = document.getElementById('uploadZone');
 var fileInput = document.getElementById('fileInput');
 var resultArea = document.getElementById('resultArea');
 var beforeImg = document.getElementById('beforeImg');
 var afterImg = document.getElementById('afterImg');
 var processingIndicator = document.getElementById('processingIndicator');
+var processingMsg = document.getElementById('processingMsg');
+var errorMsg = document.getElementById('errorMsg');
 var downloadBtn = document.getElementById('downloadBtn');
 var resetBtn = document.getElementById('resetBtn');
 var toolBtns = document.querySelectorAll('.tool-btn');
 var navLinks = document.querySelectorAll('nav a');
 var pages = {
   accueil: document.getElementById('page-accueil'),
-  galerie: document.getElementById('page-galerie'),
-  docs: document.getElementById('page-docs'),
-  api: document.getElementById('page-api')
+  docs: document.getElementById('page-docs')
 };
+var settingsBtn = document.getElementById('settingsBtn');
+var settingsModal = document.getElementById('settingsModal');
+var hfTokenInput = document.getElementById('hfToken');
+var hfModelInput = document.getElementById('hfModel');
+var modalCancel = document.getElementById('modalCancel');
+var modalSave = document.getElementById('modalSave');
+var tokenIndicator = document.getElementById('tokenIndicator');
 
-// ---- Navigation ----
+function updateTokenIndicator() {
+  if (state.token) {
+    tokenIndicator.className = 'token-status ok';
+    tokenIndicator.title = 'Token API configuré';
+  } else {
+    tokenIndicator.className = 'token-status nok';
+    tokenIndicator.title = 'Token API non configuré';
+  }
+}
+
 function navigate(hash) {
   var pageId = hash.replace('#','') || 'accueil';
   Object.keys(pages).forEach(function(k) {
@@ -375,12 +324,10 @@ else navigate(window.location.hash);
 navLinks.forEach(function(a) {
   a.addEventListener('click', function(e) {
     e.preventDefault();
-    var hash = a.getAttribute('href');
-    window.location.hash = hash;
+    window.location.hash = a.getAttribute('href');
   });
 });
 
-// ---- Tool selection ----
 toolBtns.forEach(function(btn) {
   btn.addEventListener('click', function() {
     toolBtns.forEach(function(b) { b.classList.remove('active'); });
@@ -392,9 +339,7 @@ toolBtns.forEach(function(btn) {
   });
 });
 
-// ---- Upload ----
 uploadZone.addEventListener('click', function() { fileInput.click(); });
-
 uploadZone.addEventListener('dragover', function(e) {
   e.preventDefault();
   uploadZone.classList.add('dragover');
@@ -407,7 +352,6 @@ uploadZone.addEventListener('drop', function(e) {
   uploadZone.classList.remove('dragover');
   if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
 });
-
 fileInput.addEventListener('change', function() {
   if (fileInput.files.length) handleFile(fileInput.files[0]);
 });
@@ -427,415 +371,131 @@ function handleFile(file) {
     state.originalDataUrl = e.target.result;
     beforeImg.src = state.originalDataUrl;
     uploadZone.style.display = 'none';
+    errorMsg.style.display = 'none';
     resultArea.classList.add('visible');
     processWithCurrentTool();
   };
   reader.readAsDataURL(file);
 }
 
-// ---- Processing ----
 function processWithCurrentTool() {
   if (!state.originalDataUrl || state.isProcessing) return;
+  if (!state.token) {
+    showError('Configurez votre token Hugging Face (⚙️ en haut à droite)');
+    return;
+  }
   state.isProcessing = true;
   processingIndicator.style.display = 'block';
+  processingMsg.textContent = 'Envoi à Hugging Face...';
   afterImg.style.display = 'none';
   state.processedDataUrl = null;
   downloadBtn.disabled = true;
+  errorMsg.style.display = 'none';
 
   var tool = state.currentTool;
-  var img = new Image();
-  img.onload = function() {
-    switch(tool) {
-      case 'colorize': case 'restore':
-        processAI(tool, img);
-        break;
-      case 'upscale':
-        setTimeout(function() { processUpscale(img); }, 100);
-        break;
-      case 'deblur':
-        setTimeout(function() { processDeblur(img); }, 100);
-        break;
-      case 'enhance':
-        setTimeout(function() { processEnhance(img); }, 100);
-        break;
-    }
-  };
-  img.src = state.originalDataUrl;
+  var modelId = state.customModel || DEFAULT_MODELS[tool];
+
+  processingMsg.textContent = 'Traitement par ' + modelId + '...';
+
+  callHuggingFaceAPI(modelId, state.originalDataUrl, tool)
+    .then(function(resultUrl) {
+      state.processedDataUrl = resultUrl;
+      afterImg.src = resultUrl;
+      afterImg.style.display = 'block';
+      processingIndicator.style.display = 'none';
+      state.isProcessing = false;
+      downloadBtn.disabled = false;
+    })
+    .catch(function(err) {
+      processingIndicator.style.display = 'none';
+      state.isProcessing = false;
+      showError('Erreur : ' + (err.message || err) + '. Vérifiez votre token et le modèle.');
+    });
 }
 
-function done(resultUrl) {
-  state.processedDataUrl = resultUrl;
-  afterImg.src = resultUrl;
-  afterImg.style.display = 'block';
-  processingIndicator.style.display = 'none';
-  state.isProcessing = false;
-  downloadBtn.disabled = false;
+function callHuggingFaceAPI(modelId, imageDataUrl, tool) {
+  return new Promise(function(resolve, reject) {
+    var blob = dataURLToBlob(imageDataUrl);
+    var ext = blob.type === 'image/png' ? 'png' : 'jpeg';
+
+    var url = 'https://api-inference.huggingface.co/models/' + modelId;
+
+    var fetchOptions = {
+      headers: {
+        'Authorization': 'Bearer ' + state.token
+      },
+      method: 'POST'
+    };
+
+    if (modelId === 'timbrooks/instruct-pix2pix') {
+      var prompt = 'colorize this black and white photo, realistic colors';
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var base64 = e.target.result.split(',')[1];
+        fetchOptions.headers['Content-Type'] = 'application/json';
+        fetchOptions.body = JSON.stringify({
+          inputs: base64,
+          parameters: { prompt: prompt }
+        });
+        doFetch(url, fetchOptions, resolve, reject);
+      };
+      reader.readAsDataURL(blob);
+    } else {
+      fetchOptions.headers['Content-Type'] = 'image/' + ext;
+      fetchOptions.body = blob;
+      doFetch(url, fetchOptions, resolve, reject);
+    }
+  });
 }
-function fail(err) {
-  processingIndicator.style.display = 'none';
-  state.isProcessing = false;
-  alert('Erreur : ' + (err.message || err));
+
+function doFetch(url, options, resolve, reject) {
+  fetch(url, options)
+    .then(function(response) {
+      var contentType = response.headers.get('content-type') || '';
+      if (!response.ok) {
+        return response.text().then(function(text) {
+          var msg = text;
+          try { var j = JSON.parse(text); msg = j.error || text; } catch(e) {}
+          reject(new Error('HTTP ' + response.status + ': ' + msg));
+        });
+      }
+      if (contentType.includes('application/json')) {
+        return response.json().then(function(json) {
+          if (json.error) {
+            reject(new Error(json.error));
+          } else if (json.image) {
+            resolve('data:image/png;base64,' + json.image);
+          } else {
+            reject(new Error('Réponse inattendue de l\'API'));
+          }
+        });
+      }
+      return response.blob().then(function(blob) {
+        resolve(URL.createObjectURL(blob));
+      });
+    })
+    .catch(function(err) {
+      reject(err);
+    });
 }
 
-  // ---- AI dispatcher ----
-  function processAI(mode, img) {
-    if (mode === 'colorize') return canvasColorize(img);
-    if (mode === 'restore') return processRestore(img);
+function dataURLToBlob(dataUrl) {
+  var parts = dataUrl.split(',');
+  var mime = parts[0].match(/:(.*?);/)[1];
+  var bytes = atob(parts[1]);
+  var ab = new ArrayBuffer(bytes.length);
+  var ia = new Uint8Array(ab);
+  for (var i = 0; i < bytes.length; i++) {
+    ia[i] = bytes.charCodeAt(i);
   }
+  return new Blob([ab], { type: mime });
+}
 
-  // ---- Colorize (Canvas: smart color mapping v4 - local contrast aware) ----
-  function canvasColorize(img) {
-    var c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var d = ctx.getImageData(0, 0, c.width, c.height);
-    var data = d.data, w = c.width, h = c.height, len = data.length;
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+}
 
-    // Histogram stretch
-    var min = 255, max = 0;
-    for (var i = 0; i < len; i += 4) {
-      var gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      if (gray < min) min = gray;
-      if (gray > max) max = gray;
-    }
-    var range = max - min || 1;
-
-    // Precompute stretched luminance
-    var lum = new Float32Array(w * h);
-    for (var i = 0; i < len; i += 4) {
-      var g = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      lum[i>>2] = (g - min) / range;
-    }
-
-    // Compute local contrast per pixel (3x3 window std-dev approximation)
-    var detail = new Float32Array(w * h);
-    for (var y = 1; y < h-1; y++) {
-      for (var x = 1; x < w-1; x++) {
-        var idx = y * w + x;
-        var sum = 0, sum2 = 0;
-        for (var ky = -1; ky <= 1; ky++) {
-          for (var kx = -1; kx <= 1; kx++) {
-            var v = lum[(y+ky)*w + (x+kx)];
-            sum += v; sum2 += v*v;
-          }
-        }
-        var mean = sum / 9;
-        detail[idx] = Math.sqrt(sum2/9 - mean*mean);
-      }
-    }
-
-    // Colorize with local-contrast-aware palette blending
-    for (var y = 0; y < h; y++) {
-      for (var x = 0; x < w; x++) {
-        var idx = y * w + x;
-        var i4 = idx << 2;
-        var n = lum[idx];
-        var det = detail[idx];
-
-        // Blend between cool (smooth=sky) and warm (detailed=foreground) palettes
-        var cool = det < 0.04 ? 0.6 : det < 0.08 ? 0.3 : 0.0;
-
-        // Shadows: deep blue (cool) / earthy brown (warm)
-        var sr, sg, sb;
-        if (n < 0.2) {
-          var t = n / 0.2;
-          sr = 15+25*t; sg = 10+20*t; sb = 30+45*t;
-        } else if (n < 0.4) {
-          var t = (n-0.2)/0.2;
-          sr = 40+60*t; sg = 30+55*t; sb = 75-15*t;
-        } else if (n < 0.6) {
-          var t = (n-0.4)/0.2;
-          sr = 100+80*t; sg = 85+75*t; sb = 60+15*t;
-        } else if (n < 0.8) {
-          var t = (n-0.6)/0.2;
-          sr = 180+55*t; sg = 160+60*t; sb = 75+45*t;
-        } else {
-          var t = (n-0.8)/0.2;
-          sr = 235+20*t; sg = 220+35*t; sb = 120+130*t;
-        }
-
-        // Warm palette (foreground): shifted towards green/earth
-        var wr, wg, wb;
-        if (n < 0.2) {
-          var t = n / 0.2;
-          wr = 25+35*t; wg = 20+30*t; wb = 20+35*t;
-        } else if (n < 0.4) {
-          var t = (n-0.2)/0.2;
-          wr = 60+75*t; wg = 50+80*t; wb = 55-5*t;
-        } else if (n < 0.6) {
-          var t = (n-0.4)/0.2;
-          wr = 135+85*t; wg = 130+90*t; wb = 50+30*t;
-        } else if (n < 0.8) {
-          var t = (n-0.6)/0.2;
-          wr = 220+35*t; wg = 220+35*t; wb = 80+50*t;
-        } else {
-          var t = (n-0.8)/0.2;
-          wr = 255+0*t; wg = 255+0*t; wb = 130+125*t;
-        }
-
-        var col_r = sr * cool + wr * (1-cool);
-        var col_g = sg * cool + wg * (1-cool);
-        var col_b = sb * cool + wb * (1-cool);
-
-        // Blend 90% color + 10% original, then boost saturation
-        var orig = lum[idx] * range + min;
-        var r = col_r * 0.9 + orig * 0.1;
-        var g = col_g * 0.9 + orig * 0.1;
-        var b = col_b * 0.9 + orig * 0.1;
-        var avg = (r+g+b)/3;
-        data[i4]   = Math.min(255, avg + (r-avg)*2.0);
-        data[i4+1] = Math.min(255, avg + (g-avg)*2.0);
-        data[i4+2] = Math.min(255, avg + (b-avg)*2.0);
-      }
-    }
-
-    ctx.putImageData(d, 0, 0);
-    done(c.toDataURL('image/png'));
-  }
-
-  // ---- Restore (Canvas: denoise + contrast + sharpen) ----
-  function processRestore(img) {
-    var c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var d = ctx.getImageData(0, 0, c.width, c.height);
-    var data = d.data, w = c.width, h = c.height;
-
-    // 1. Median filter (light denoise)
-    var copy = new Uint8ClampedArray(data);
-    var r = 1; // radius
-    for (var y = r; y < h - r; y++) {
-      for (var x = r; x < w - r; x++) {
-        var idx = (y * w + x) * 4;
-        var rs = [], gs = [], bs = [];
-        for (var ky = -r; ky <= r; ky++) {
-          for (var kx = -r; kx <= r; kx++) {
-            var nIdx = ((y + ky) * w + (x + kx)) * 4;
-            rs.push(copy[nIdx]);
-            gs.push(copy[nIdx + 1]);
-            bs.push(copy[nIdx + 2]);
-          }
-        }
-        rs.sort(function(a,b){return a-b;});
-        gs.sort(function(a,b){return a-b;});
-        bs.sort(function(a,b){return a-b;});
-        var mid = Math.floor(rs.length / 2);
-        data[idx] = rs[mid];
-        data[idx+1] = gs[mid];
-        data[idx+2] = bs[mid];
-      }
-    }
-
-    // 2. Auto contrast (histogram stretch)
-    var min = 255, max = 0;
-    for (var i = 0; i < data.length; i += 4) {
-      var g = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-      if (g < min) min = g;
-      if (g > max) max = g;
-    }
-    var range = max - min || 1;
-    for (var i = 0; i < data.length; i += 4) {
-      data[i] = Math.max(0, Math.min(255, (data[i] - min) / range * 255));
-      data[i+1] = Math.max(0, Math.min(255, (data[i+1] - min) / range * 255));
-      data[i+2] = Math.max(0, Math.min(255, (data[i+2] - min) / range * 255));
-    }
-
-    // 3. Light sharpen
-    var copy2 = new Uint8ClampedArray(data);
-    var kernel = [0, -0.5, 0, -0.5, 3, -0.5, 0, -0.5, 0];
-    for (var y = 1; y < h - 1; y++) {
-      for (var x = 1; x < w - 1; x++) {
-        var idx = (y * w + x) * 4;
-        var r = 0, g = 0, b = 0;
-        for (var ky = -1; ky <= 1; ky++) {
-          for (var kx = -1; kx <= 1; kx++) {
-            var nIdx = ((y + ky) * w + (x + kx)) * 4;
-            var kVal = kernel[(ky + 1) * 3 + (kx + 1)];
-            r += copy2[nIdx] * kVal;
-            g += copy2[nIdx + 1] * kVal;
-            b += copy2[nIdx + 2] * kVal;
-          }
-        }
-        data[idx] = Math.max(0, Math.min(255, r));
-        data[idx+1] = Math.max(0, Math.min(255, g));
-        data[idx+2] = Math.max(0, Math.min(255, b));
-      }
-    }
-
-    ctx.putImageData(d, 0, 0);
-    done(c.toDataURL('image/png'));
-  }
-
-  // ---- Upscale (Canvas bicubic 4x) ----
-  function processUpscale(img) {
-    var sw = img.width, sh = img.height;
-    var dw = sw * 4, dh = sh * 4;
-    var c = document.createElement('canvas');
-    c.width = dw; c.height = dh;
-    var ctx = c.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    // Draw in steps for better quality
-    if (dw > 4096 || dh > 4096) {
-      // Limit max output dimension to prevent crash
-      var ratio = Math.min(4096 / dw, 4096 / dh);
-      dw = Math.round(dw * ratio);
-      dh = Math.round(dh * ratio);
-      c.width = dw; c.height = dh;
-    }
-    // Multi-step upscale for bicubic quality
-    var steps = [
-      [2, 2], [2, 2]
-    ];
-    var cw = sw, ch = sh;
-    var tempCanvas1 = document.createElement('canvas');
-    var tempCtx1 = tempCanvas1.getContext('2d');
-    tempCanvas1.width = sw; tempCanvas1.height = sh;
-    tempCtx1.drawImage(img, 0, 0);
-    for (var i = 0; i < steps.length; i++) {
-      var s = steps[i];
-      var nw = Math.min(cw * s[0], dw);
-      var nh = Math.min(ch * s[1], dh);
-      var tempCanvas2 = document.createElement('canvas');
-      tempCanvas2.width = nw; tempCanvas2.height = nh;
-      var tempCtx2 = tempCanvas2.getContext('2d');
-      tempCtx2.imageSmoothingEnabled = true;
-      tempCtx2.imageSmoothingQuality = 'high';
-      tempCtx2.drawImage(tempCanvas1, 0, 0, nw, nh);
-      tempCanvas1 = tempCanvas2;
-      tempCtx1 = tempCtx2;
-      cw = nw; ch = nh;
-    }
-    c.width = dw; c.height = dh;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(tempCanvas1, 0, 0, dw, dh);
-    done(c.toDataURL('image/png'));
-  }
-
-  // ---- Deblur (Sharpen kernel) ----
-  function processDeblur(img) {
-    var c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var imageData = ctx.getImageData(0, 0, c.width, c.height);
-    var data = imageData.data;
-    var w = c.width, h = c.height;
-
-    // Sharpen kernel
-    var kernel = [
-      0, -1, 0,
-      -1, 5, -1,
-      0, -1, 0
-    ];
-    var half = 1;
-    var copy = new Uint8ClampedArray(data);
-    // Apply kernel multiple times for stronger effect
-    for (var iter = 0; iter < 2; iter++) {
-      for (var y = half; y < h - half; y++) {
-        for (var x = half; x < w - half; x++) {
-          var idx = (y * w + x) * 4;
-          var r = 0, g = 0, b = 0;
-          for (var ky = -half; ky <= half; ky++) {
-            for (var kx = -half; kx <= half; kx++) {
-              var nIdx = ((y + ky) * w + (x + kx)) * 4;
-              var kVal = kernel[(ky + half) * 3 + (kx + half)];
-              r += copy[nIdx] * kVal;
-              g += copy[nIdx + 1] * kVal;
-              b += copy[nIdx + 2] * kVal;
-            }
-          }
-          data[idx] = Math.max(0, Math.min(255, r));
-          data[idx + 1] = Math.max(0, Math.min(255, g));
-          data[idx + 2] = Math.max(0, Math.min(255, b));
-        }
-      }
-      if (iter === 0) {
-        // Reload copy for second pass
-        for (var i = 0; i < data.length; i++) copy[i] = data[i];
-      }
-    }
-
-    // Additional slight brightness boost
-    for (var i = 0; i < data.length; i += 4) {
-      data[i] = Math.min(255, data[i] + 5);
-      data[i + 1] = Math.min(255, data[i + 1] + 5);
-      data[i + 2] = Math.min(255, data[i + 2] + 5);
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    done(c.toDataURL('image/png'));
-  }
-
-  // ---- Enhance (brightness, contrast, saturation, sharpness) ----
-  function processEnhance(img) {
-    var c = document.createElement('canvas');
-    c.width = img.width; c.height = img.height;
-    var ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    var imageData = ctx.getImageData(0, 0, c.width, c.height);
-    var data = imageData.data;
-    var len = data.length;
-    var w = c.width, h = c.height;
-
-    // 1. Brightness +20
-    var brightness = 20;
-    for (var i = 0; i < len; i += 4) {
-      data[i] = Math.min(255, data[i] + brightness);
-      data[i + 1] = Math.min(255, data[i + 1] + brightness);
-      data[i + 2] = Math.min(255, data[i + 2] + brightness);
-    }
-
-    // 2. Contrast +15
-    var contrast = 15;
-    var factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-    for (var i = 0; i < len; i += 4) {
-      data[i] = Math.max(0, Math.min(255, factor * (data[i] - 128) + 128));
-      data[i + 1] = Math.max(0, Math.min(255, factor * (data[i + 1] - 128) + 128));
-      data[i + 2] = Math.max(0, Math.min(255, factor * (data[i + 2] - 128) + 128));
-    }
-
-    // 3. Saturation +20
-    var saturation = 20;
-    for (var i = 0; i < len; i += 4) {
-      var r = data[i], g = data[i+1], b = data[i+2];
-      var gray = 0.299 * r + 0.587 * g + 0.114 * b;
-      data[i] = Math.max(0, Math.min(255, gray + (r - gray) * (1 + saturation / 100)));
-      data[i + 1] = Math.max(0, Math.min(255, gray + (g - gray) * (1 + saturation / 100)));
-      data[i + 2] = Math.max(0, Math.min(255, gray + (b - gray) * (1 + saturation / 100)));
-    }
-
-    // 4. Sharpen (light)
-    var kernel = [0, -0.5, 0, -0.5, 3, -0.5, 0, -0.5, 0];
-    var half = 1;
-    var copy = new Uint8ClampedArray(data);
-    for (var y = half; y < h - half; y++) {
-      for (var x = half; x < w - half; x++) {
-        var idx = (y * w + x) * 4;
-        var r = 0, g = 0, b = 0;
-        for (var ky = -half; ky <= half; ky++) {
-          for (var kx = -half; kx <= half; kx++) {
-            var nIdx = ((y + ky) * w + (x + kx)) * 4;
-            var kVal = kernel[(ky + half) * 3 + (kx + half)];
-            r += copy[nIdx] * kVal;
-            g += copy[nIdx + 1] * kVal;
-            b += copy[nIdx + 2] * kVal;
-          }
-        }
-        data[idx] = Math.max(0, Math.min(255, r));
-        data[idx + 1] = Math.max(0, Math.min(255, g));
-        data[idx + 2] = Math.max(0, Math.min(255, b));
-      }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    done(c.toDataURL('image/png'));
-  }
-
-// ---- Download ----
 downloadBtn.addEventListener('click', function() {
   if (!state.processedDataUrl) return;
   var link = document.createElement('a');
@@ -846,7 +506,6 @@ downloadBtn.addEventListener('click', function() {
   document.body.removeChild(link);
 });
 
-// ---- Reset ----
 resetBtn.addEventListener('click', function() {
   state.originalFile = null;
   state.originalDataUrl = null;
@@ -857,14 +516,35 @@ resetBtn.addEventListener('click', function() {
   afterImg.src = '';
   beforeImg.src = '';
   processingIndicator.style.display = 'none';
+  errorMsg.style.display = 'none';
   downloadBtn.disabled = true;
 });
 
-// ---- Keyboard shortcut ----
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && state.processedDataUrl) downloadBtn.click();
+// Settings modal
+settingsBtn.addEventListener('click', function() {
+  hfTokenInput.value = state.token;
+  hfModelInput.value = state.customModel;
+  settingsModal.classList.add('open');
 });
 
+modalCancel.addEventListener('click', function() {
+  settingsModal.classList.remove('open');
+});
+
+modalSave.addEventListener('click', function() {
+  state.token = hfTokenInput.value.trim();
+  state.customModel = hfModelInput.value.trim();
+  localStorage.setItem('hf_token', state.token);
+  localStorage.setItem('hf_model', state.customModel);
+  updateTokenIndicator();
+  settingsModal.classList.remove('open');
+});
+
+settingsModal.addEventListener('click', function(e) {
+  if (e.target === settingsModal) settingsModal.classList.remove('open');
+});
+
+updateTokenIndicator();
 })();
 </script>
 </body>
