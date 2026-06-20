@@ -234,7 +234,10 @@ footer{padding:24px 16px;text-align:center;font-size:.75rem;color:var(--bg-600);
   <div class="modal">
     <h2>Configuration API Hugging Face</h2>
     <label for="hfToken">Token API</label>
-    <input type="text" id="hfToken" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    <div style="position:relative">
+      <input type="password" id="hfToken" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--bg-700);background:var(--bg-800);color:var(--text-100);font-size:.9rem;font-family:monospace;outline:none;box-sizing:border-box;padding-right:40px">
+      <button id="toggleToken" type="button" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-500);cursor:pointer;padding:4px;font-size:14px" title="Afficher/masquer">👁️</button>
+    </div>
     <div class="hint">
       Créez un token sur <strong>huggingface.co/settings/tokens</strong>.<br>
       Le token est stocké localement dans votre navigateur.
@@ -519,6 +522,20 @@ resetBtn.addEventListener('click', function() {
   errorMsg.style.display = 'none';
   downloadBtn.disabled = true;
 });
+
+// Toggle token visibility
+var toggleToken = document.getElementById('toggleToken');
+if (toggleToken) {
+  toggleToken.addEventListener('click', function() {
+    if (hfTokenInput.type === 'password') {
+      hfTokenInput.type = 'text';
+      toggleToken.textContent = '🙈';
+    } else {
+      hfTokenInput.type = 'password';
+      toggleToken.textContent = '👁️';
+    }
+  });
+}
 
 // Settings modal
 settingsBtn.addEventListener('click', function() {
